@@ -12,6 +12,24 @@ require 'rspec'
 module WordBreak
   class << self
     def segmentize(string, dictionary)
+      segmentize = memoize( -> string {
+        return string if dictionary.include?(string)
+        string.size.times do |i|
+          prefix = string[0..i]
+          next unless dictionary.include?(prefix)
+          remaining_segment = segmentize.call(string[(i+1)..-1])
+          return [prefix, remaining_segment].join(" ") if remaining_segment
+        end
+        nil
+      })
+      segmentize.call(string)
+    end
+
+    private
+
+    def memoize(fn)
+      cache = {}
+      -> *args { cache.include?(args) ? cache[args] : cache[args] = fn.call(*args) }
     end
   end
 end
